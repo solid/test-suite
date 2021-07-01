@@ -22,7 +22,7 @@ Kjetil Kjernsmo E<lt>kjetilk@cpan.orgE<gt>.
 
 =head1 COPYRIGHT AND LICENCE
 
-This software is Copyright (c) 2019 by Inrupt Inc.
+This software is Copyright (c) 2020 by Inrupt Inc.
 
 This is free software, licensed under:
 
@@ -48,7 +48,11 @@ my $path = $ENV{SOLID_FIXTURE_PATH} || '/opt/fixture-tables/';
 
 use Test::FITesque::RDF;
 
-my @files = ('authentication.ttl','operations_protected_ldp_nr.ttl','operations_protected_ldp_rs.ttl');
+my @files = qw(
+					 operations_post_with_slug.ttl
+					 operations_put_resource.ttl
+					 operations_put_container.ttl
+				 );
 
 
 BAIL_OUT("Set SOLID_REMOTE_BASE to the URL of the base of the server you are testing") unless $ENV{SOLID_REMOTE_BASE};

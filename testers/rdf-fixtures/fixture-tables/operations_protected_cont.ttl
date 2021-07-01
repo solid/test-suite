@@ -4,21 +4,19 @@
 @prefix http: <http://www.w3.org/2007/ont/http#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
-@prefix :     <https://github.com/solid/test-suite/blob/master/testers/rdf-fixtures/fixture-tables/operations_protected_ldp_rs.ttl#> .
+@prefix :     <https://github.com/solid/test-suite/blob/master/testers/rdf-fixtures/fixture-tables/operations_protected_cont.ttl#> .
 
 :test_list a test:FixtureTable ;
-    rdfs:comment "These tests exist to provide a high-level overview of allowed manipulations on an LDP-RS controlled by the ACL system."@en ;
+    rdfs:comment "These tests exist to provide a high-level overview of allowed manipulations on a container controlled by the ACL system with unspecified interaction model."@en ;
     test:fixtures (
         :setup_init
-        :test_bob_r_rs
+        :test_bob_r_bc
         :setup_append
-        :test_bob_a_rs
+        :test_bob_a_bc
         :setup_read_append
-        :test_bob_ar_rs
+        :test_bob_ar_bc
         :setup_read_write
-        :test_bob_rw_rs
-        :setup_read_write_container
-        :test_bob_delete_rs
+        :test_bob_rw_bc
         :teardown
     ) .
 
@@ -34,82 +32,86 @@
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/ALICE_ID_GOOD> ;
         test:steps (
             [
-                test:request :setup_alice_share_bob_rs_req ;
+                test:request :setup_alice_share_bob_bc_req ;
                 test:response_assertion :created_ok_res
             ]
             [
-                test:request :setup_alice_share_bob_r_rs_acl_req ;
+                test:request :setup_alice_share_bob_r_bc_acl_req ;
                 test:response_assertion :created_ok_res
             ]
         )
     ] .
 
-:setup_alice_share_bob_rs_req a http:RequestMessage ;
-    rdfs:comment "Set up RDF resource for Bob.";
-    http:method "PUT" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> ;
-    httph:content_type "text/turtle" ;
-    http:content """@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
-<> rdfs:comment "Protected contents, that Alice gives Bob Read to." .
-    """ .
+:setup_alice_share_bob_bc_req a http:RequestMessage ;
+    rdfs:comment "Set up RDF BC resource for Bob.";
+    http:method "POST" ;
+    http:requestURI </> ;
+    httph:slug "test-auth-bc" ;
+    httph:content_type "text/turtle";
+    httph:link """<http://www.w3.org/ns/ldp#BasicContainer>; rel=\"type\"""";
+    http:content """@prefix dc: <http://purl.org/dc/terms/>.
+@prefix ldp: <http://www.w3.org/ns/ldp#>.
+<> a ldp:BasicContainer ;
+   dc:title "Initial container for Bobs stuff"@en .""" .
 
 
-:setup_alice_share_bob_r_rs_acl_req a http:RequestMessage ;
-    rdfs:comment "Set up ACL for RDF resource for Bob to read.";
+
+:setup_alice_share_bob_r_bc_acl_req a http:RequestMessage ;
+    rdfs:comment "Set up ACL for Basic Container for Bob to read.";
     http:method "PUT" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl.acl> ;
+    http:requestURI </test-auth-bc/.acl> ;
     httph:content_type "text/turtle" ;
     http:content """@prefix acl: <http://www.w3.org/ns/auth/acl#>.
 <#owner> a acl:Authorization;
   acl:agent <https://alice.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/alice_share_bob.ttl>;
+  acl:accessTo </test-auth-bc/>;
   acl:mode acl:Read, acl:Write, acl:Control.
 <#bob> a acl:Authorization;
   acl:agent <https://bobwebid.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/alice_share_bob.ttl>;
+  acl:accessTo </test-auth-bc/>;
   acl:mode acl:Read.
 """ .
 
-:test_bob_r_rs a test:AutomatedTest ;
-    test:purpose "Check that Bob can only read RDF resource when he is authorized read only."@en ;
+:test_bob_r_bc a test:AutomatedTest ;
+    test:purpose "Check that Bob can only read Basic Container when he is authorized read only."@en ;
     test:test_script <http://example.org/httplist#http_req_res_list> ;
     test:params [
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/BOB_ID_GOOD> ;
         test:steps (
             [
-                test:request :test_bob_rs_read_req ;
+                test:request :test_bob_bc_read_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_head_req ;
+                test:request :test_bob_bc_head_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_options_req ;
+                test:request :test_bob_bc_options_req ;
                 test:response_assertion :no_content_res ;
             ]
             [
-                test:request :test_bob_rs_write_req ;
+                test:request :test_bob_bc_write_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_patch_req ;
+                test:request :test_bob_bc_patch_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_patch_req ;
+                test:request :test_bob_bc_patch_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_append_req ;
+                test:request :test_bob_bc_append_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_delete_req ;
+                test:request :test_bob_bc_delete_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_other_req ;
+                test:request :test_bob_bc_other_req ;
                 test:response_assertion :invalid_req_res ;
             ]
         )
@@ -124,69 +126,69 @@
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/ALICE_ID_GOOD> ;
         test:steps (
             [
-                test:request :setup_alice_share_bob_a_rs_acl_req ;
+                test:request :setup_alice_share_bob_a_bc_acl_req ;
                 test:response_assertion :created_ok_res
             ]
         )
     ] .
 
-:setup_alice_share_bob_a_rs_acl_req a http:RequestMessage ;
-    rdfs:comment "Set up ACL for RDF resource for Bob to append.";
+:setup_alice_share_bob_a_bc_acl_req a http:RequestMessage ;
+    rdfs:comment "Set up ACL for Basic Container for Bob to append.";
     http:method "PUT" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl.acl> ;
+    http:requestURI </test-auth-bc/.acl> ;
     httph:content_type "text/turtle" ;
     http:content """@prefix acl: <http://www.w3.org/ns/auth/acl#>.
 <#owner> a acl:Authorization;
   acl:agent <https://alice.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/alice_share_bob.ttl>;
+  acl:accessTo </test-auth-bc/>;
   acl:mode acl:Read, acl:Write, acl:Control.
 <#bob> a acl:Authorization;
   acl:agent <https://bobwebid.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/alice_share_bob.ttl>;
+  acl:accessTo </test-auth-bc/>;
   acl:mode acl:Append.
 """ .
 
 
-:test_bob_a_rs a test:AutomatedTest ;
-    test:purpose "Check that Bob can only append to RDF resource when he is authorized append only."@en ;
+:test_bob_a_bc a test:AutomatedTest ;
+    test:purpose "Check that Bob can only append to Basic Container when he is authorized append only."@en ;
     test:test_script <http://example.org/httplist#http_req_res_list> ;
     test:params [
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/BOB_ID_GOOD> ;
         test:steps (
             [
-                test:request :test_bob_rs_read_req ;
+                test:request :test_bob_bc_read_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_head_req ;
+                test:request :test_bob_bc_head_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_options_req ;
+                test:request :test_bob_bc_options_req ;
                 test:response_assertion :no_content_res ;
             ]
             [
-                test:request :test_bob_rs_write_req ;
+                test:request :test_bob_bc_write_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_patch_req ;
+                test:request :test_bob_bc_patch_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_patch_with_delete_req ;
+                test:request :test_bob_bc_patch_with_delete_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_append_req ;
-                test:response_assertion :not_found_res ; # TODO: Doesn't support hierarchy, should be :no_content_res ;
+                test:request :test_bob_bc_append_req ;
+                test:response_assertion :created_ok_res ;
             ]
             [
-                test:request :test_bob_rs_delete_req ;
+                test:request :test_bob_bc_delete_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_other_req ;
+                test:request :test_bob_bc_other_req ;
                 test:response_assertion :invalid_req_res ;
             ]
         )
@@ -201,68 +203,69 @@
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/ALICE_ID_GOOD> ;
         test:steps (
             [
-                test:request :setup_alice_share_bob_ar_rs_acl_req ;
+                test:request :setup_alice_share_bob_ar_bc_acl_req ;
                 test:response_assertion :created_ok_res
             ]
         )
     ] .
 
-:setup_alice_share_bob_ar_rs_acl_req a http:RequestMessage ;
-    rdfs:comment "Set up ACL for RDF resource for Bob to read and append.";
+:setup_alice_share_bob_ar_bc_acl_req a http:RequestMessage ;
+    rdfs:comment "Set up ACL for Basic Container for Bob to read and append.";
     http:method "PUT" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl.acl> ;
+    http:requestURI </test-auth-bc/.acl> ;
     httph:content_type "text/turtle" ;
     http:content """@prefix acl: <http://www.w3.org/ns/auth/acl#>.
 <#owner> a acl:Authorization;
   acl:agent <https://alice.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/alice_share_bob.ttl>;
+  acl:accessTo </test-auth-bc/>;
   acl:mode acl:Read, acl:Write, acl:Control.
 <#bob> a acl:Authorization;
   acl:agent <https://bobwebid.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/alice_share_bob.ttl>;
+  acl:accessTo </test-auth-bc/>;
   acl:mode acl:Read, acl:Append.
 """ .
 
 
-:test_bob_ar_rs a test:AutomatedTest ;
-    test:purpose "Check that Bob can read and append to RDF resource when he is authorized read-append."@en ;
+:test_bob_ar_bc a test:AutomatedTest ;
+    test:purpose "Check that Bob can read and append to Basic Container when he is authorized read-append."@en ;
     test:test_script <http://example.org/httplist#http_req_res_list> ;
     test:params [
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/BOB_ID_GOOD> ;
         test:steps (
             [
-                test:request :test_bob_rs_read_req ;
+                test:request :test_bob_bc_read_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_head_req ;
+                test:request :test_bob_bc_head_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_options_req ;
+                test:request :test_bob_bc_options_req ;
                 test:response_assertion :no_content_res ;
             ]
             [
-                test:request :test_bob_rs_write_req ;
+                test:request :test_bob_bc_write_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_patch_req ;
+                test:request :test_bob_bc_patch_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_patch_with_delete_req ;
-                test:response_assertion :forbidden_res ;
-            ]            [
-                test:request :test_bob_rs_append_req ;
-                test:response_assertion :not_found_res ; # TODO: Doesn't support hierarchy, should be :no_content_res ;
-            ]
-            [
-                test:request :test_bob_rs_delete_req ;
+                test:request :test_bob_bc_patch_with_delete_req ;
                 test:response_assertion :forbidden_res ;
             ]
             [
-                test:request :test_bob_rs_other_req ;
+                test:request :test_bob_bc_append_req ;
+                test:response_assertion :created_ok ;
+            ]
+            [
+                test:request :test_bob_bc_delete_req ;
+                test:response_assertion :forbidden_res ;
+            ]
+            [
+                test:request :test_bob_bc_other_req ;
                 test:response_assertion :invalid_req_res ;
             ]
         )
@@ -275,69 +278,69 @@
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/ALICE_ID_GOOD> ;
         test:steps (
             [
-                test:request :setup_alice_share_bob_rw_rs_acl_req ;
+                test:request :setup_alice_share_bob_rw_bc_acl_req ;
                 test:response_assertion :created_ok_res
             ]
         )
     ] .
 
-:setup_alice_share_bob_rw_rs_acl_req a http:RequestMessage ;
-    rdfs:comment "Set up ACL for RDF resource for Bob to read and write.";
+:setup_alice_share_bob_rw_bc_acl_req a http:RequestMessage ;
+    rdfs:comment "Set up ACL for Basic Container for Bob to read and write.";
     http:method "PUT" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl.acl> ;
+    http:requestURI </test-auth-bc/.acl> ;
     httph:content_type "text/turtle" ;
     http:content """@prefix acl: <http://www.w3.org/ns/auth/acl#>.
 <#owner> a acl:Authorization;
   acl:agent <https://alice.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/alice_share_bob.ttl>;
+  acl:accessTo </test-auth-bc/>;
   acl:mode acl:Read, acl:Write, acl:Control.
 <#bob> a acl:Authorization;
   acl:agent <https://bobwebid.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/alice_share_bob.ttl>;
+  acl:accessTo </test-auth-bc/>;
   acl:mode acl:Read, acl:Write.
 """ .
 
 
-:test_bob_rw_rs a test:AutomatedTest ;
-    test:purpose "Check that Bob can read and write to RDF resource when he is authorized read-write."@en ;
+:test_bob_rw_bc a test:AutomatedTest ;
+    test:purpose "Check that Bob can read and write to Basic Container when he is authorized read-write."@en ;
     test:test_script <http://example.org/httplist#http_req_res_list> ;
     test:params [
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/BOB_ID_GOOD> ;
         test:steps (
             [
-                test:request :test_bob_rs_read_req ;
+                test:request :test_bob_bc_read_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_head_req ;
+                test:request :test_bob_bc_head_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_options_req ;
+                test:request :test_bob_bc_options_req ;
                 test:response_assertion :no_content_res ;
             ]
             [
-                test:request :test_bob_rs_write_req ;
+                test:request :test_bob_bc_write_req ;
                 test:response_assertion :created_res ; # TODO: Really?
             ]
             [
-                test:request :test_bob_rs_patch_req ;
+                test:request :test_bob_bc_patch_req ;
                 test:response_assertion :ok_res ; # TODO: Check deletes
             ]
             [
-                test:request :test_bob_rs_patch_with_delete_req ;
+                test:request :test_bob_bc_patch_with_delete_req ;
                 test:response_assertion :ok_res ;
             ]
             [
-                test:request :test_bob_rs_append_req ;
-                test:response_assertion :not_found_res ; # TODO: Doesn't support hierarchy, should be :no_content_res ;
+                test:request :test_bob_bc_append_req ;
+                test:response_assertion :created_ok ;
             ]
             [
-                test:request :test_bob_rs_other_req ;
+                test:request :test_bob_bc_other_req ;
                 test:response_assertion :invalid_req_res ;
             ]
             [
-                test:request :test_bob_rs_delete_req ;
+                test:request :test_bob_bc_delete_req ;
                 test:response_assertion :forbidden_res ; # Because Bob doesn't have write permission on the container
             ]
         )
@@ -351,89 +354,61 @@
         <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/ALICE_ID_GOOD> ;
         test:steps (
             [
-                test:request :setup_alice_share_bob_rw_container_rs_acl_req ;
+                test:request :setup_alice_share_bob_rw_container_bc_acl_req ;
                 test:response_assertion :created_ok_res
             ]
         )
     ] .
 
-:setup_alice_share_bob_rw_container_rs_acl_req a http:RequestMessage ;
-    rdfs:comment "Set up ACL for RDF resource for Bob to read and write.";
-    http:method "PUT" ;
-    http:requestURI </test-auth-rs/.acl> ;
-    httph:content_type "text/turtle" ;
-    http:content """@prefix acl: <http://www.w3.org/ns/auth/acl#>.
-<#owner> a acl:Authorization;
-  acl:agent <https://alice.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/>;
-  acl:mode acl:Read, acl:Write, acl:Control.
-<#bob> a acl:Authorization;
-  acl:agent <https://bobwebid.idp.test.solidproject.org/profile/card#me>;
-  acl:accessTo </test-auth-rs/>;
-  acl:mode acl:Read, acl:Write.
-""" .
-
-:test_bob_delete_rs a test:AutomatedTest ;
-    test:purpose "Check that Bob can delete RDF resource when he is authorized read-write on the container."@en ;
-    test:test_script <http://example.org/httplist#http_req_res_list> ;
-    test:params [
-        <http://example.org/httplist/param#bearer> <https://idp.test.solidproject.org/tokens/BOB_ID_GOOD> ;
-        test:steps (
-            [
-                test:request :test_bob_rs_delete_req ;
-                test:response_assertion :deleted_ok_res ;
-            ]
-        )
-    ] .
-
-:test_bob_rs_read_req a http:RequestMessage ;
+:test_bob_bc_read_req a http:RequestMessage ;
     http:method "GET" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
-:test_bob_rs_head_req a http:RequestMessage ;
+:test_bob_bc_head_req a http:RequestMessage ;
     http:method "HEAD" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
-:test_bob_rs_options_req a http:RequestMessage ;
+:test_bob_bc_options_req a http:RequestMessage ;
     http:method "OPTIONS" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
-:test_bob_rs_write_req a http:RequestMessage ;
+:test_bob_bc_write_req a http:RequestMessage ;
     http:method "PUT" ;
     http:content """@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 <> rdfs:comment "Bob replaced it." .
     """ ;
     httph:content_type "text/turtle" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
-:test_bob_rs_patch_req a http:RequestMessage ;
+:test_bob_bc_patch_req a http:RequestMessage ;
     http:method "PATCH" ;
     http:content "INSERT DATA { <> a <http://example.org/Foo> . }" ;
     httph:content_type "application/sparql-update" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
-:test_bob_rs_patch_with_delete_req a http:RequestMessage ;
+:test_bob_bc_patch_with_delete_req a http:RequestMessage ;
     http:method "PATCH" ;
     http:content """DELETE { ?s a ?o . } INSERT { <> a <http://example.org/Bar> . }
 WHERE  { ?s a ?o . }""" ;
     httph:content_type "application/sparql-update" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
-:test_bob_rs_append_req a http:RequestMessage ;
+:test_bob_bc_append_req a http:RequestMessage ;
     http:method "POST" ;
     http:content """@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 <> rdfs:comment "Bob added this."
     """ ;
+    httph:slug "bobsdata" ;
     httph:content_type "text/turtle" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
-:test_bob_rs_delete_req a http:RequestMessage ;
+:test_bob_bc_delete_req a http:RequestMessage ;
     http:method "DELETE" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
-:test_bob_rs_other_req a http:RequestMessage ;
+:test_bob_bc_other_req a http:RequestMessage ;
     http:method "DAHU" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
+    http:requestURI </test-auth-bc/> .
 
 
 :created_ok_res a http:ResponseMessage ;
@@ -472,8 +447,8 @@ WHERE  { ?s a ?o . }""" ;
                 test:response_assertion :deleted_ok_res
             ]
             [
-                test:request :teardown_test_dir ;
-                test:response_assertion :deleted_ok_res
+                test:request :teardown_alice_share_bob_req ;
+                test:response_assertion :not_found_res
             ]
             [
                 test:request :teardown_verify_its_gone ;
@@ -483,19 +458,15 @@ WHERE  { ?s a ?o . }""" ;
         )
     ] .
 
-:teardown_alice_share_bob_req a http:RequestMessage ;
-    http:method "DELETE" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl> .
-
 :teardown_alice_share_bob_acl_req a http:RequestMessage ;
     rdfs:comment "Open issue: https://github.com/solid/specification/issues/58"@en ; # TODO, we should have a predicate for this... :-)
     http:method "DELETE" ;
-    http:requestURI </test-auth-rs/alice_share_bob.ttl.acl> .
+    http:requestURI </test-auth-bc/.acl> .
 
-:teardown_test_dir a http:RequestMessage ;
-    rdfs:comment "Open issue: https://github.com/solid/specification/issues/58"@en ; # TODO, we should have a predicate for this... :-)
+:teardown_alice_share_bob_req a http:RequestMessage ;
     http:method "DELETE" ;
-    http:requestURI </test-auth-rs/> .
+    http:requestURI </test-auth-bc/> .
+
 
 :teardown_verify_its_gone a http:RequestMessage ;
     http:method "GET" ;

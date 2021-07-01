@@ -8,7 +8,7 @@
 @prefix :     <https://github.com/solid/test-suite/blob/master/testers/rdf-fixtures/fixture-tables/operations_put_resource.ttl#> .
 
 :test_list a test:FixtureTable ;
-    rdfs:comment "These tests exist to provide a high-level overview of allowed PUT manipulations on different resources with unspecified interaction model."@en ;
+rdfs:comment "These tests exist to provide a high-level overview of allowed PUT manipulations on different resources with unspecified interaction model."@en ;
     test:fixtures (
         :create_containers
         #        :teardown

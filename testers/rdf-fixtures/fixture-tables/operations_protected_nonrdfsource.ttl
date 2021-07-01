@@ -4,10 +4,10 @@
 @prefix http: <http://www.w3.org/2007/ont/http#> .
 @prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#>.
 @prefix nfo:  <http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#> .
-@prefix :     <https://github.com/solid/test-suite/blob/master/testers/rdf-fixtures/fixture-tables/operations_protected_ldp_nr.ttl#> .
+@prefix :     <https://github.com/solid/test-suite/blob/master/testers/rdf-fixtures/fixture-tables/operations_protected_nonrdfsource.ttl#> .
 
 :test_list a test:FixtureTable ;
-    rdfs:comment "These tests exist to provide a high-level overview of allowed manipulations on an LDP-NR controlled by the ACL system."@en ;
+    rdfs:comment "These tests exist to provide a high-level overview of allowed manipulations on a non-RDF source controlled by the ACL system."@en ;
     test:fixtures (
         :setup_init
         :test_bob_r_nr
@@ -61,7 +61,7 @@
 <#owner> a acl:Authorization;
   acl:agent <https://alice.idp.test.solidproject.org/profile/card#me>;
   acl:accessTo </test-auth-nr/alice_share_bob.txt>;
-  acl:mode acl:Read, acl:Write, acl:Control.
+acl:mode acl:Read, acl:Write, acl:Control.
 <#bob> a acl:Authorization;
   acl:agent <https://bobwebid.idp.test.solidproject.org/profile/card#me>;
   acl:accessTo </test-auth-nr/alice_share_bob.txt>;
@@ -126,7 +126,7 @@
 
 :setup_alice_share_bob_a_nr_acl_req a http:RequestMessage ;
     rdfs:comment "Set up ACL for Non-RDF resource for Bob to append.";
-    http:method "PUT" ;
+http:method "PUT" ;
     http:requestURI </test-auth-nr/alice_share_bob.txt.acl> ;
     httph:content_type "text/turtle" ;
     http:content """@prefix acl: <http://www.w3.org/ns/auth/acl#>.
@@ -169,7 +169,7 @@
             ]
             [
                 test:request :test_bob_nr_append_req ;
-                test:response_assertion :not_found_res ; # TODO: Doesn't support hierarchy, should be :no_content_res ;
+                test:response_assertion :no_content_res ;
             ]
             [
                 test:request :test_bob_nr_delete_req ;
@@ -194,7 +194,7 @@
                 test:request :setup_alice_share_bob_ar_nr_acl_req ;
                 test:response_assertion :created_ok_res
             ]
-        )
+)
     ] .
 
 :setup_alice_share_bob_ar_nr_acl_req a http:RequestMessage ;
@@ -227,7 +227,7 @@
             [
                 test:request :test_bob_nr_head_req ;
                 test:response_assertion :ok_res ;
-            ]
+]
             [
                 test:request :test_bob_nr_options_req ;
                 test:response_assertion :no_content_res ;
@@ -242,7 +242,7 @@
             ]
             [
                 test:request :test_bob_nr_append_req ;
-                test:response_assertion :not_found_res ; # TODO: Doesn't support hierarchy, should be :no_content_res ;
+                test:response_assertion :no_content_res ;
             ]
             [
                 test:request :test_bob_nr_delete_req ;
@@ -313,7 +313,7 @@
             ]
             [
                 test:request :test_bob_nr_append_req ;
-                test:response_assertion :not_found_res ; # TODO: Doesn't support hierarchy, should be :no_content_res ;
+                test:response_assertion :no_content_res ;
             ]
             [
                 test:request :test_bob_nr_other_req ;
@@ -460,7 +460,7 @@
     http:requestURI </test-auth-nr/alice_share_bob.txt> .
 
 :teardown_alice_share_bob_acl_req a http:RequestMessage ;
-    rdfs:comment "Open issue: https://github.com/solid/specification/issues/58"@en ; # TODO, we should have a predicate for this... :-)
+rdfs:comment "Open issue: https://github.com/solid/specification/issues/58"@en ; # TODO, we should have a predicate for this... :-)
     http:method "DELETE" ;
     http:requestURI </test-auth-nr/alice_share_bob.txt.acl> .
 
